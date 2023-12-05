@@ -68,6 +68,10 @@ Run [IO.gets/2](https://hexdocs.pm/elixir/IO.html#gets/2) in the command line fr
 iex> input = IO.gets("Give me some input: ")
 ```
 
+```elixir
+input = "sure"
+```
+
 ## Commit Your Progress
 
 DockYard Academy now recommends you use the latest [Release](https://github.com/DockYard-Academy/curriculum/releases) rather than forking or cloning our repository.
