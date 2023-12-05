@@ -91,6 +91,8 @@ maze = %{
     }
   }
 }
+
+maze.south.west.south.east.south.east.south
 ```
 
 ## The String Maze
@@ -152,6 +154,8 @@ maze = %{
     }
   }
 }
+
+maze["south"]["east"]["south"]["west"]["south"]["west"]["south"]["east"]["south"]
 ```
 
 ## Bonus: Treasure Map
@@ -197,6 +201,8 @@ treasure_map = %{
     }
   }
 }
+
+treasure_map["south ten paces"][10][:"east three paces"][[1, 2, 3]][{"turn", "right"}][:dig]
 ```
 
 ### (Extra Bonus) Update The Treasure Map
@@ -267,6 +273,19 @@ treasure_map = %{
     }
   }
 }
+
+treasure_map = %{
+  treasure_map
+  | "south ten paces" => %{
+      10 => %{
+        :"east three paces" => %{
+          [1, 2, 3] => %{
+            {"turn", "right"} => %{:dig => "taken"}
+          }
+        }
+      }
+    }
+}
 ```
 
 ## Bonus: Pattern Matching
@@ -274,7 +293,25 @@ treasure_map = %{
 Use pattern matching to bind the `"Exit!"` string to an `exit` variable.
 
 ```elixir
-maze = %{
+%{
+  "south" => %{
+    "east" => %{
+      "south" => %{
+        "west" => %{
+          "south" => %{
+            "west" => %{
+              "south" => %{
+                "east" => %{
+                  "south" => exit
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+} = %{
   "south" => %{
     "east" => %{
       "south" => %{
@@ -293,6 +330,8 @@ maze = %{
     }
   }
 }
+
+exit
 ```
 
 ## BONUS: Create Your Own Maze
@@ -306,7 +345,29 @@ at least a 5 * 5 in width and height.
 Enter your solution below.
 
 ```elixir
+maze = %{
+  south: %{
+    south: %{
+      south: %{
+        south: %{
+          west: %{
+            west: %{
+              south: %{
+                east: %{
+                  east: %{
+                    south: "Exit!"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
 
+maze.south.south.south.south.west.west.south.east.east.south
 ```
 
 ## Commit Your Progress
