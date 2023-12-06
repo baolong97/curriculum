@@ -120,7 +120,7 @@ end
 Call the `MutliParamExample.call/3` function with different arguments.
 
 ```elixir
-
+MultiParamExample.call(2, 3, 4)
 ```
 
 ## Internal Module Functions
@@ -179,6 +179,8 @@ However, sometimes a module must keep a function private for internal use only. 
 Often it communicates to other developers how to use your module.
 
 You can create a private module function with `defp` instead of `def`. You'll notice that below the `Speaker.think/0` function is undefined to the outside world.
+
+<!-- livebook:{"continue_on_error":true} -->
 
 ```elixir
 defmodule PrivateThoughts do
@@ -318,7 +320,11 @@ end
 Enter your solution below.
 
 ```elixir
-
+defmodule Languages.Vietnamese do
+  def greeting do
+    "Xin chào"
+  end
+end
 ```
 
 ### Nested Modules
@@ -357,8 +363,8 @@ We use the `@` symbol to define a compile-time module attribute.
 
 ```elixir
 defmodule Hero do
-  @name "Spider-Man"
-  @nemesis "Green Goblin"
+  @name "Iron-Man"
+  @nemesis "Thanos and his army"
 
   def introduce do
     "Hello, my name is #{@name}!"
@@ -516,7 +522,39 @@ end
 </details>
 
 ```elixir
+defmodule Math do
+  @moduledoc """
+    Provides utility functions for doing math
+  """
 
+  @doc """
+  Returns sum of two numbers
+
+  ## Examples
+  iex> Math.add(2,3)
+  5
+
+  iex> Math.add(4,5)
+  9
+  """
+  def add(a, b) do
+    a + b
+  end
+
+  @doc """
+  Returns sum of two numbers
+
+  ## Examples
+  iex> Math.add(1,2,3)
+  6
+
+  iex> Math.add(4,5,6)
+  15
+  """
+  def add(a, b, c) do
+    a + b + c
+  end
+end
 ```
 
 ## Default Arguments
@@ -583,7 +621,13 @@ Greeting.hello("Andrew")
 ```
 
 ```elixir
+defmodule Greeting do
+  def hello(name \\ "Jon") do
+    "Hello #{name}!"
+  end
+end
 
+Greeting.hello("Andrew")
 ```
 
 ## Documentation
@@ -696,25 +740,24 @@ If this is the case, you either have to fix your code, or remove/comment the cra
 Uncomment the following code and evaluate the cell to see an example. Re-comment your code to avoid crashing the livebook as you continue with the lesson.
 
 ```elixir
-# defmodule DoctestCrash Do
-# @moduledoc """
-# DoctestCrash
+defmodule DoctestCrash do
+  @moduledoc """
+  DoctestCrash
 
-# Explains Doctest Crashes With Examples
-# """
+  Explains Doctest Crashes With Examples
+  """
 
-# @doc """
-# Purposely Crashes Doctest Using Invalid Pattern Matching
+  @doc """
+  Purposely Crashes Doctest Using Invalid Pattern Matching
 
-# ## Examples
+  ## Examples
 
-# iex> {} = DoctestCrash.crash()
-# "2"
-# """
-# def crash do
-
-# end
-# end
+  iex> {} = DoctestCrash.crash()
+  "2"
+  """
+  # def crash do
+  # end
+end
 ```
 
 ### Your Turn
