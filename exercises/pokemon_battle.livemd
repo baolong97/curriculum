@@ -125,9 +125,22 @@ defmodule Pokemon do
       iex> Pokemon.attack(attacker, defender)
       %Pokemon{name: "Bulbasaur", type: :grass, health: 10.0, attack: 5, speed: 20}
   """
-  defstruct []
+  defstruct [:name, :type, :health, :attack, :speed]
 
   def attack(attacker, defender) do
+    damge_rate =
+      if attacker.type == defender.type do
+        1
+      else
+        case attacker.type do
+          :fire -> (defender.type == :grass && 2) || 0.5
+          :grass -> (defender.type == :water && 2) || 0.5
+          :water -> (defender.type == :fire && 2) || 0.5
+        end
+      end
+
+    damage = attacker.attack * damge_rate
+    %Pokemon{defender | health: defender.health - damage}
   end
 end
 ```
@@ -135,7 +148,11 @@ end
 Consider using the following Elixir cell to test your solution.
 
 ```elixir
+attacker = %Pokemon{name: "Charmander", type: :fire, health: 20.0, attack: 5, speed: 20}
+defender = %Pokemon{name: "Bulbasaur", type: :grass, health: 20.0, attack: 5, speed: 20}
 
+# Applies 5 * 2 Damage. Original Health: 20.0, New Health: 10.0.
+Pokemon.attack(attacker, defender)
 ```
 
 ### Pokemon Instances
@@ -186,7 +203,10 @@ Pokemon.attack(charmander, bulbasaur)
 Enter your solution below.
 
 ```elixir
-
+charmander = %Pokemon{name: "Charmander", type: :fire, health: 20, attack: 5, speed: 20}
+bulbasaur = %Pokemon{name: "Bulbasaur", type: :grass, health: 20, attack: 5, speed: 20}
+squirtle = %Pokemon{name: "Squirtle", type: :water, health: 20, attack: 5, speed: 20}
+Pokemon.attack(charmander, bulbasaur)
 ```
 
 ## Commit Your Progress
