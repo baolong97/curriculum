@@ -203,7 +203,9 @@ end)
 </details>
 
 ```elixir
-
+Enum.reduce(String.split("1234321", "", trim: true), %{}, fn char, map ->
+  Map.update(map, char, 1, fn current -> current + 1 end)
+end)
 ```
 
 ## Multiple Accumulators
