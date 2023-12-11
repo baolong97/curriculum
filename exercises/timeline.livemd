@@ -121,6 +121,10 @@ defmodule Timeline do
     [9, 12, 2]
   """
   def from_dates(dates) do
+    Enum.chunk_every(dates, 2, 1, :discard)
+    |> Enum.map(fn [start, finish] ->
+      Date.diff(finish, start)
+    end)
   end
 
   @doc """
@@ -139,6 +143,12 @@ defmodule Timeline do
     [9, 12, 2]
   """
   def from_strings(date_strings) do
+    Enum.chunk_every(date_strings, 2, 1, :discard)
+    |> Enum.map(fn [start, finish] ->
+      {:ok, start} = Date.from_iso8601(start)
+      {:ok, finish} = Date.from_iso8601(finish)
+      Date.diff(finish, start)
+    end)
   end
 end
 ```
