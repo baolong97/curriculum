@@ -293,7 +293,7 @@ DateTime.new!(Date.new!(1938, 4, 19), Time.new!(12, 0, 0))
 Enter your solution below.
 
 ```elixir
-
+DateTime.new!(Date.new!(1938, 4, 19), Time.new!(12, 0, 0))
 ```
 
 If you solved the challenge above using sigils, complete it again using functions. If you solved the challenge using functions, then complete it again using sigils.
@@ -318,7 +318,7 @@ DateTime.utc_now()
 Enter your solution below.
 
 ```elixir
-
+DateTime.utc_now()
 ```
 
 Use [DateTime.add/4](https://hexdocs.pm/elixir/DateTime.html#add/4) to add one day to the current [DateTime](https://hexdocs.pm/elixir/DateTime.html). This creates a new [DateTime](https://hexdocs.pm/elixir/DateTime.html) for tomorrow at the current time.
@@ -336,7 +336,7 @@ DateTime.add(DateTime.utc_now(), day_in_seconds)
 Enter your solution below
 
 ```elixir
-
+DateTime.add(DateTime.utc_now(), 1, :day)
 ```
 
 Use [DateTime.compare/2](https://hexdocs.pm/elixir/DateTime.html#compare/2) to compare the [DateTime](https://hexdocs.pm/elixir/DateTime.html) below with the current [DateTime](https://hexdocs.pm/elixir/DateTime.html). The `date` below should be `:lt` (less than) the current [DateTime](https://hexdocs.pm/elixir/DateTime.html).
@@ -374,7 +374,7 @@ DateTime.diff(finish, start)
 Enter your solution below.
 
 ```elixir
-
+DateTime.diff(~U[2010-01-01 12:00:00Z], ~U[2000-01-01 12:00:00Z], :second)
 ```
 
 ## Timex
@@ -409,7 +409,7 @@ Use [Timex.now/1](https://hexdocs.pm/timex/Timex.html#now/1) to create a datetim
 to ensure it is correct.
 
 ```elixir
-
+Timex.now("Asia/Ho_Chi_Minh")
 ```
 
 ## Further Reading
