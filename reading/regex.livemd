@@ -208,7 +208,7 @@ Regex.scan(~r/[a-c]/, "abcd")
 * `|` match on one pattern or another.
 
 ```elixir
-Regex.scan(~r/a|2/, "abc123")
+Regex.scan(~r/a|2/, "ab")
 ```
 
 * `[^a]` match on characters other than the one provided
