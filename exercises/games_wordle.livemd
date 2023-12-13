@@ -150,6 +150,7 @@ Make sure you reset the color.
 
 ```elixir
 IO.puts(IO.ANSI.green() <> "green" <> IO.ANSI.reset() <> " reset color")
+Enum.
 ```
 
 ## Commit Your Progress
