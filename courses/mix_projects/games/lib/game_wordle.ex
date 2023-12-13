@@ -1,4 +1,18 @@
 defmodule Games.Wordle do
+  @moduledoc """
+   Documentation for `Games.Wordle`.
+  """
+  @doc """
+  feedback.
+
+  ## Examples
+
+      iex> Games.Wordle.feedback("AAA","AAA")
+      [:green,:green,:green]
+      iex> Games.Wordle.feedback("AAA","BBB")
+      [:grey, :grey, :grey]
+  """
+  @spec feedback(String.t(), String.t()) :: [atom()]
   def feedback(answer, guess) do
     answer_list = String.to_charlist(answer)
     guess_list = String.to_charlist(guess)
@@ -38,8 +52,9 @@ defmodule Games.Wordle do
     result
   end
 
+  @spec play(String.t(), integer()) :: String.t()
   defp play(answer, attempts \\ 0) do
-    guess= IO.gets("Enter a give letter word: ") |> String.trim()
+    guess = IO.gets("Enter a give letter word: ") |> String.trim()
 
     if guess == answer do
       "You win!"
@@ -48,20 +63,24 @@ defmodule Games.Wordle do
         "You lose! the answer was #{answer}"
       else
         IO.puts(
-        Enum.zip(String.split(guess,"",trim: true), feedback(answer,guess))
-        |>Enum.map(fn {char,color}->
-          case color do
-            :green -> IO.ANSI.green() <> char
-            :yellow -> IO.ANSI.yellow() <> char
-            :grey -> IO.ANSI.light_black() <> char
-          end
-        end)
-        |>List.to_string())
-        IO.puts(""<> IO.ANSI.reset())
+          Enum.zip(String.split(guess, "", trim: true), feedback(answer, guess))
+          |> Enum.map(fn {char, color} ->
+            case color do
+              :green -> IO.ANSI.green() <> char
+              :yellow -> IO.ANSI.yellow() <> char
+              :grey -> IO.ANSI.light_black() <> char
+            end
+          end)
+          |> List.to_string()
+        )
+
+        IO.puts("" <> IO.ANSI.reset())
         play(answer, attempts + 1)
       end
     end
   end
+
+  @spec play() :: String.t()
   def play() do
     answer = Enum.random(["toast", "tarts", "hello", "beats"])
     play(answer)

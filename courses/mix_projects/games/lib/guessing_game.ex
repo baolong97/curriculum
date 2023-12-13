@@ -1,4 +1,7 @@
 defmodule Games.GuessingGame do
+  @moduledoc """
+   Documentation for `Games.GuessingGame`.
+  """
   defp hint(guess, answer) do
     if guess > answer do
       IO.puts("Too High!")
