@@ -573,6 +573,10 @@ defmodule OrganizedNumberTest do
     test "2 -> 4" do
       assert OrganizedNumber.double(2) == 4
     end
+
+    test "3 -> 6" do
+      assert OrganizedNumber.double(3) == 6
+    end
   end
 
   describe "triple/1" do
