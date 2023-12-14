@@ -66,16 +66,15 @@ defmodule User do
 
   def validate_users(users) do
     Enum.map(users, fn user ->
-      with %User{name: name} <- user, true <- {:missing_name, is_binary(name)} do
-        {:ok, user}
-      else
-        false ->
+      with %User{name: name} <- user do
+        if is_binary(name) do
+          {:ok, user}
+        else
           {:error, :missing_name}
-
-        _ ->
-          {:e}
-          IO.inspect(thing)
-          :error
+        end
+      else
+        {:error, :missing_name} -> {:error, :missing_name}
+        _ -> {:error, :not_a_user}
       end
     end)
   end
