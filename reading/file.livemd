@@ -157,7 +157,7 @@ DO NOT DELETE IMPORTANT FILES ON YOUR SYSTEM WHEN USING THE FILE MODULE
 </div>
 
 ```elixir
-
+File.read(".ssh")
 ```
 
 ## Path Module Functions
@@ -197,7 +197,7 @@ Path.join(path1, path2)
 Experiment with the functions above. Refer to the documentation for examples you can try.
 
 ```elixir
-
+Path.absname("")
 ```
 
 ## Bang Functions
