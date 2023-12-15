@@ -79,6 +79,10 @@ defmodule TodoList do
       []
   """
   def list do
+    case File.read("todo_data.txt") do
+      {:ok, list} -> :erlang.binary_to_term(list)
+      _ -> []
+    end
   end
 
   @doc """
@@ -92,6 +96,8 @@ defmodule TodoList do
       ["task 2", "task 1"]
   """
   def add(item) do
+    list = [item | list()]
+    File.write("todo_data.txt", :erlang.term_to_binary(list))
   end
 
   @doc """
@@ -105,6 +111,8 @@ defmodule TodoList do
       ["task 2", "task 1"]
   """
   def complete(item) do
+    list = list() -- [item]
+    File.write("todo_data.txt", :erlang.term_to_binary(list))
   end
 end
 ```
