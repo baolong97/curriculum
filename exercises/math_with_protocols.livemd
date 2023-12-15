@@ -134,6 +134,35 @@ defprotocol Math do
 end
 
 # Define Implementations...
+defimpl Math, for: Integer do
+  def add(i1, i2) do
+    i1 + i2
+  end
+
+  def subtract(i1, i2) do
+    i1 - i2
+  end
+end
+
+defimpl Math, for: BitString do
+  def add(s1, s2) do
+    s1 <> s2
+  end
+
+  def subtract(s1, s2) do
+    (String.to_charlist(s1) -- String.to_charlist(s2)) |> List.to_string()
+  end
+end
+
+defimpl Math, for: List do
+  def add(l1, l2) do
+    l1 ++ l2
+  end
+
+  def subtract(l1, l2) do
+    l1 -- l2
+  end
+end
 ```
 
 ## Commit Your Progress
