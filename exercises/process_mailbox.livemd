@@ -139,7 +139,30 @@ defmodule Mailbox do
       "Hello!"
   """
   def loop(state \\ []) do
+    receive do
+      {:send, msg} ->
+        loop([msg | state])
+
+      {:read, from_pid} ->
+        case state do
+          [] ->
+            send(from_pid, :empty)
+            loop()
+
+          [msg | tail] ->
+            send(from_pid, msg)
+            loop(tail)
+        end
+    end
   end
+end
+
+mailbox_process = spawn(fn -> Mailbox.loop() end)
+send(mailbox_process, {:send, "Hello!"})
+send(mailbox_process, {:read, self()})
+
+receive do
+  message -> message
 end
 ```
 
