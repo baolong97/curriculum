@@ -108,12 +108,37 @@ defmodule Timer do
   """
   use GenServer
 
-  def start_link(_opts) do
+  @impl true
+  def handle_info(:increase, state) do
+    Process.send_after(self(), :increase, 1000)
+    {:noreply, state + 1}
   end
 
-  def get_time(timer_pid) do
+  @impl true
+  def init(_opts) do
+    Process.send_after(self(), :increase, 1000)
+    {:ok, 0}
+  end
+
+  def start_link(_opts) do
+    GenServer.start_link(__MODULE__, [])
+  end
+
+  @impl true
+  def handle_call(:get_time, _from, state) do
+    {:reply, state, state}
+  end
+
+  def seconds(timer_pid) do
+    GenServer.call(timer_pid, :get_time)
   end
 end
+
+{:ok, pid} = Timer.start_link([])
+0 = Timer.seconds(pid)
+
+Process.sleep(1500)
+1 = Timer.seconds(pid)
 ```
 
 ## Commit Your Progress
