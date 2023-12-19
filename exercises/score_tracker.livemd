@@ -103,6 +103,7 @@ defmodule ScoreTracker do
   # Client API
 
   def start_link(opts) do
+    IO.puts(__MODULE__)
     GenServer.start_link(__MODULE__, opts)
   end
 

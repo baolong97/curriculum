@@ -11,13 +11,29 @@ defmodule Games.RockPaperScissors do
     user_hand = IO.gets("Choose rock, paper, or scissors: ") |> String.trim()
 
     case {user_hand, machine_hand} do
-      {"rock", "scissors"} -> "You win! rock beats scissors."
-      {"paper", "rock"} -> "You win! paper beats rock."
-      {"scissors", "paper"} -> "You win! scissors beats paper."
-      {"rock", "paper"} -> "You lose! paper beats rock."
-      {"paper", "scissors"} -> "You lose! scissors beats paper."
-      {"scissors", "rock"} -> "You lose! rock beats scissors."
-      _ -> "It's a tie!"
+      {"rock", "scissors"} ->
+        Games.ScoreTracker.add_points(10)
+        "You win! rock beats scissors."
+
+      {"paper", "rock"} ->
+        Games.ScoreTracker.add_points(10)
+        "You win! paper beats rock."
+
+      {"scissors", "paper"} ->
+        Games.ScoreTracker.add_points(10)
+        "You win! scissors beats paper."
+
+      {"rock", "paper"} ->
+        "You lose! paper beats rock."
+
+      {"paper", "scissors"} ->
+        "You lose! scissors beats paper."
+
+      {"scissors", "rock"} ->
+        "You lose! rock beats scissors."
+
+      _ ->
+        "It's a tie!"
     end
   end
 end

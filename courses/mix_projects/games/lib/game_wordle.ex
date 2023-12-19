@@ -57,6 +57,7 @@ defmodule Games.Wordle do
     guess = IO.gets("Enter a give letter word: ") |> String.trim()
 
     if guess == answer do
+      Games.ScoreTracker.add_points(15)
       "You win!"
     else
       if attempts == 5 do

@@ -14,6 +14,7 @@ defmodule Games.GuessingGame do
     {guess, _} = IO.gets("Guess a number between 1 and 10: ") |> Integer.parse()
 
     if guess == answer do
+      Games.ScoreTracker.add_points(5)
       "You win!"
     else
       if attempts == 5 do
