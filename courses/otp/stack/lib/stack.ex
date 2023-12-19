@@ -16,14 +16,13 @@ defmodule Stack do
   end
 
   def start_link(opts) do
-    GenServer.start(__MODULE__,Keyword.get(opts,:state,[]))
+    GenServer.start(__MODULE__, Keyword.get(opts, :state, []), name: __MODULE__)
   end
 
   @impl true
   def handle_cast({:push, element}, state) do
     {:noreply, [element | state]}
   end
-
 
   @doc """
   Add element to stack
@@ -42,14 +41,15 @@ defmodule Stack do
   @impl true
   def handle_call(:pop, _from, state) do
     case state do
-      [head | tail] -> {:reply, head, tail}
-      [] -> {:reply, nil, []}
+      [head | tail] ->
+        {:reply, head, tail}
+        # [] -> {:reply, nil, []}
     end
   end
 
   @impl true
   def handle_call(:get_stack, _from, state) do
-     {:reply, state, state}
+    {:reply, state, state}
   end
 
   @doc """
