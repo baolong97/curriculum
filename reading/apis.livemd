@@ -472,7 +472,24 @@ IO.puts(message)
 </details>
 
 ```elixir
+method = :post
+url = "https://api.openai.com/v1/chat/completions"
 
+headers = [
+  {"Content-Type", "application/json"},
+  {"Authorization", "Bearer $OPENAI_API_TOKEN"}
+]
+
+body =
+  Jason.encode!(%{
+    model: "gpt-3.5-turbo",
+    messages: [%{role: "user", content: "Hello!"}]
+  })
+
+request = Finch.build(method, url, headers, body) |> Finch.request!(MyApp.Finch)
+
+decoded_body = Jason.decode!(request.body)
+decoded_body["error"]["message"]
 ```
 
 ## Commit Your Progress
