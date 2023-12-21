@@ -70,7 +70,7 @@ See [start.livemd](https://github.com/DockYard-Academy/curriculum/blob/main/star
 * HTML And CSS
 * APIs
 * Relational Databases 
-* Phoenix
+* Phoenix 
 * Group Project Blog
 * Phoenix And Ecto
 * Testing Phoenix
