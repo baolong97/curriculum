@@ -22,22 +22,6 @@ defmodule Blog.Posts do
   end
 
   @doc """
-  Returns the list of posts fill filtered by title.
-
-  ## Examples
-
-      iex> list_posts("title")
-      [%Post{}, ...]
-
-  """
-  def list_posts(title) do
-    search = "%#{title}%"
-    query = from p in Post, where: ilike(p.title, ^search)
-
-    Repo.all(query)
-  end
-
-  @doc """
   Gets a single post.
 
   Raises `Ecto.NoResultsError` if the Post does not exist.
