@@ -15,19 +15,19 @@ defmodule BlogWeb.PostControllerTest do
   end
 
   test "search for posts - non-matching", %{conn: conn} do
-    post = post_fixture(title: "some title")
+    post = post_fixture(title: "some title #{NaiveDateTime.utc_now}")
     conn = get(conn, ~p"/posts", title: "Non-Matching")
     refute html_response(conn, 200) =~ post.title
   end
 
   test "search for posts - exact match", %{conn: conn} do
-    post = post_fixture(title: "some title")
+    post = post_fixture(title: "some title #{NaiveDateTime.utc_now}")
     conn = get(conn, ~p"/posts", title: "some title")
     assert html_response(conn, 200) =~ post.title
   end
 
   test "search for posts - partial match", %{conn: conn} do
-    post = post_fixture(title: "some title")
+    post = post_fixture(title: "some title #{NaiveDateTime.utc_now}")
     conn = get(conn, ~p"/posts", title: "itl")
     assert html_response(conn, 200) =~ post.title
   end

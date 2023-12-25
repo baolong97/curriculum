@@ -15,8 +15,31 @@ defmodule Blog.PostsTest do
       assert Posts.list_posts() == [post]
     end
 
+    test "list_posts/0 returns all posts with visible: true" do
+      post_fixture(%{visible: false})
+      post = post_fixture()
+      assert Posts.list_posts() == [post]
+    end
+
+    test "list_posts/0 posts are displayed from newest" do
+      posts = Enum.map(1..10,fn i ->  post_fixture(%{title: "title #{i}"}) end)
+      is_newest_to_oldest = posts
+      |>Enum.chunk_every(2, 1, :discard)
+      |>Enum.all?(fn [p1,p2]->
+        p1.inserted_at >= p2.inserted_at
+      end)
+
+      assert is_newest_to_oldest
+    end
+
+    test "list_posts/0 posts with a published date in the future are filtered from the list of posts" do
+      post_fixture(%{published_on: ~D[2023-12-26]})
+      post = post_fixture()
+      assert Posts.list_posts() == [post]
+    end
+
     test "list_posts/1 filters posts by partial and case-insensitive title" do
-      post = post_fixture(title: "Title")
+      post = post_fixture(title: "Title #{NaiveDateTime.utc_now}")
 
       # non-matching
       assert Posts.list_posts("Non-Matching") == []
@@ -44,12 +67,19 @@ defmodule Blog.PostsTest do
     end
 
     test "create_post/1 with valid data creates a post" do
-      valid_attrs = %{title: "some title", subtitle: "some subtitle", content: "some content"}
+      title = "some title #{NaiveDateTime.utc_now}"
+      valid_attrs = %{
+        title: title,
+        content: "some content",
+        published_on: ~D[2023-12-12],
+        visible: true
+      }
 
       assert {:ok, %Post{} = post} = Posts.create_post(valid_attrs)
-      assert post.title == "some title"
-      assert post.subtitle == "some subtitle"
+      assert post.title == title
       assert post.content == "some content"
+      assert post.published_on == ~D[2023-12-12]
+      assert post.visible == true
     end
 
     test "create_post/1 with invalid data returns error changeset" do
@@ -57,18 +87,22 @@ defmodule Blog.PostsTest do
     end
 
     test "update_post/2 with valid data updates the post" do
+      title = "some title #{NaiveDateTime.utc_now}"
+
       post = post_fixture()
 
       update_attrs = %{
-        title: "some updated title",
-        subtitle: "some updated subtitle",
-        content: "some updated content"
+        title: title,
+        content: "some content",
+        published_on: ~D[2023-12-23],
+        visible: false
       }
 
       assert {:ok, %Post{} = post} = Posts.update_post(post, update_attrs)
-      assert post.title == "some updated title"
-      assert post.subtitle == "some updated subtitle"
-      assert post.content == "some updated content"
+      assert post.title == title
+      assert post.content == "some content"
+      assert post.published_on == ~D[2023-12-23]
+      assert post.visible == false
     end
 
     test "update_post/2 with invalid data returns error changeset" do

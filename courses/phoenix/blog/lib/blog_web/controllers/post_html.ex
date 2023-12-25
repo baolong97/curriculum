@@ -1,8 +1,6 @@
 defmodule BlogWeb.PostHTML do
   use BlogWeb, :html
 
-  import Phoenix.HTML.Form
-
   embed_templates "post_html/*"
 
   @doc """
