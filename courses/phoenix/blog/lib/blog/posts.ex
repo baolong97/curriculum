@@ -13,6 +13,21 @@ defmodule Blog.Posts do
 
   ## Examples
 
+      iex> list_posts("title")
+      [%Post{}, ...]
+
+  """
+  def list_posts(title) do
+    search = "%#{title}%"
+    query = from p in Post, where: ilike(p.title,^search)
+    Repo.all(query)
+  end
+
+  @doc """
+  Returns the list of posts.
+
+  ## Examples
+
       iex> list_posts()
       [%Post{}, ...]
 
