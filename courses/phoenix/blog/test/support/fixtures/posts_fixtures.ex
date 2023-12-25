@@ -14,7 +14,8 @@ defmodule Blog.PostsFixtures do
         content: "some content",
         title: "some title #{NaiveDateTime.utc_now}",
         published_on: ~D[2023-12-12],
-        visible: true
+        visible: true,
+        comments: []
       })
       |> Blog.Posts.create_post()
 

@@ -44,6 +44,7 @@ defmodule BlogWeb.PostControllerTest do
       conn = post(conn, ~p"/posts", post: @create_attrs)
 
       assert %{id: id} = redirected_params(conn)
+
       assert redirected_to(conn) == ~p"/posts/#{id}"
 
       conn = get(conn, ~p"/posts/#{id}")
@@ -93,6 +94,21 @@ defmodule BlogWeb.PostControllerTest do
         get(conn, ~p"/posts/#{post}")
       end
     end
+  end
+
+  test "the post page displays comments on the post", %{conn: conn} do
+    conn = post(conn, ~p"/posts", post: @create_attrs)
+
+    assert %{id: id} = redirected_params(conn)
+
+
+    comment_conn = post(conn, ~p"/comments", comment: %{post_id: id, content: "comment content"})
+
+    assert redirected_to(conn) == ~p"/posts/#{id}"
+
+    conn = get(conn, ~p"/posts/#{id}")
+    assert html_response(conn, 200) =~ "Post #{id}"
+    assert html_response(conn, 200) =~ "comment content"
   end
 
   defp create_post(_) do

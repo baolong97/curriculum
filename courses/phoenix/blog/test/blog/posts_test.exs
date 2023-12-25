@@ -8,6 +8,8 @@ defmodule Blog.PostsTest do
 
     import Blog.PostsFixtures
 
+    import Blog.CommentsFixtures
+
     @invalid_attrs %{title: nil, subtitle: nil, content: nil}
 
     test "list_posts/0 returns all posts" do
@@ -63,7 +65,7 @@ defmodule Blog.PostsTest do
 
     test "get_post!/1 returns the post with given id" do
       post = post_fixture()
-      assert Posts.get_post!(post.id) == post
+      assert Posts.get_post!(post.id) == Repo.preload(post, :comments)
     end
 
     test "create_post/1 with valid data creates a post" do
@@ -108,7 +110,8 @@ defmodule Blog.PostsTest do
     test "update_post/2 with invalid data returns error changeset" do
       post = post_fixture()
       assert {:error, %Ecto.Changeset{}} = Posts.update_post(post, @invalid_attrs)
-      assert post == Posts.get_post!(post.id)
+
+      assert Posts.get_post!(post.id) == Repo.preload(post, :comments)
     end
 
     test "delete_post/1 deletes the post" do
@@ -120,6 +123,12 @@ defmodule Blog.PostsTest do
     test "change_post/1 returns a post changeset" do
       post = post_fixture()
       assert %Ecto.Changeset{} = Posts.change_post(post)
+    end
+
+    test "get_post!/1 returns the post with given id and associated comments" do
+      post = post_fixture()
+      comment = comment_fixture(post_id: post.id)
+      assert Posts.get_post!(post.id).comments == [comment]
     end
   end
 end

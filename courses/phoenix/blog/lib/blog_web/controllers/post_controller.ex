@@ -4,6 +4,9 @@ defmodule BlogWeb.PostController do
   alias Blog.Posts
   alias Blog.Posts.Post
 
+  alias Blog.Comments
+  alias Blog.Comments.Comment
+
   def index(conn, params) do
     title = params["title"]
     posts = if title do
@@ -32,8 +35,9 @@ defmodule BlogWeb.PostController do
   end
 
   def show(conn, %{"id" => id}) do
+    comment_changeset = Comments.change_comment(%Comment{})
     post = Posts.get_post!(id)
-    render(conn, :show, post: post)
+    render(conn, :show, post: post,comment_changeset: comment_changeset)
   end
 
   def edit(conn, %{"id" => id}) do
