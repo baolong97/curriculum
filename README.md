@@ -73,7 +73,7 @@ See [start.livemd](https://github.com/DockYard-Academy/curriculum/blob/main/star
 * Phoenix 
 * Group Project Blog
 * Phoenix And Ecto
-* Testing Phoenix
+* Testing Phoenix 
 * Phoenix Forms And Components
 * Phoenix And Ecto One-to-Many Associations
 * Phoenix Authentication
