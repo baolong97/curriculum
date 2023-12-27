@@ -7,13 +7,18 @@ defmodule BlogWeb.PostController do
   alias Blog.Comments
   alias Blog.Comments.Comment
 
+  plug :require_user_owns_post when action in [:edit, :update, :delete]
+
   def index(conn, params) do
     title = params["title"]
-    posts = if title do
-       Posts.list_posts(title)
-    else
-      Posts.list_posts()
-    end
+
+    posts =
+      if title do
+        Posts.list_posts(title)
+      else
+        Posts.list_posts()
+      end
+
     render(conn, :index, posts: posts)
   end
 
@@ -37,7 +42,7 @@ defmodule BlogWeb.PostController do
   def show(conn, %{"id" => id}) do
     comment_changeset = Comments.change_comment(%Comment{})
     post = Posts.get_post!(id)
-    render(conn, :show, post: post,comment_changeset: comment_changeset)
+    render(conn, :show, post: post, comment_changeset: comment_changeset)
   end
 
   def edit(conn, %{"id" => id}) do
@@ -67,5 +72,19 @@ defmodule BlogWeb.PostController do
     conn
     |> put_flash(:info, "Post deleted successfully.")
     |> redirect(to: ~p"/posts")
+  end
+
+  defp require_user_owns_post(conn, _params) do
+    post_id = String.to_integer(conn.path_params["id"])
+    post = Posts.get_post!(post_id)
+
+    if conn.assigns[:current_user].id == post.user_id do
+      conn
+    else
+      conn
+      |> put_flash(:error, "You can only edit or delete your own posts.")
+      |> redirect(to: ~p"/posts/#{post_id}")
+      |> halt()
+    end
   end
 end

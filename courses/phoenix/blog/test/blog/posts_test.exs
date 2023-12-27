@@ -10,21 +10,26 @@ defmodule Blog.PostsTest do
 
     import Blog.CommentsFixtures
 
+    import Blog.AccountsFixtures
+
     @invalid_attrs %{title: nil, subtitle: nil, content: nil}
 
     test "list_posts/0 returns all posts" do
-      post = post_fixture()
+      user = user_fixture()
+      post = post_fixture(%{user_id: user.id})
       assert Posts.list_posts() == [post]
     end
 
     test "list_posts/0 returns all posts with visible: true" do
-      post_fixture(%{visible: false})
-      post = post_fixture()
+      user = user_fixture()
+      post_fixture(%{visible: false, user_id: user.id})
+      post = post_fixture(%{user_id: user.id})
       assert Posts.list_posts() == [post]
     end
 
     test "list_posts/0 posts are displayed from newest" do
-      posts = Enum.map(1..10,fn i ->  post_fixture(%{title: "title #{i}"}) end)
+      user = user_fixture()
+      posts = Enum.map(1..10,fn i ->  post_fixture(%{title: "title #{i}", user_id: user.id}) end)
       is_newest_to_oldest = posts
       |>Enum.chunk_every(2, 1, :discard)
       |>Enum.all?(fn [p1,p2]->
@@ -35,13 +40,15 @@ defmodule Blog.PostsTest do
     end
 
     test "list_posts/0 posts with a published date in the future are filtered from the list of posts" do
-      post_fixture(%{published_on: ~D[2023-12-26]})
-      post = post_fixture()
+      user = user_fixture()
+      post_fixture(%{published_on: ~D[4023-12-26], user_id: user.id})
+      post = post_fixture(%{user_id: user.id})
       assert Posts.list_posts() == [post]
     end
 
     test "list_posts/1 filters posts by partial and case-insensitive title" do
-      post = post_fixture(title: "Title #{NaiveDateTime.utc_now}")
+      user = user_fixture()
+      post = post_fixture(title: "Title #{NaiveDateTime.utc_now}", user_id: user.id)
 
       # non-matching
       assert Posts.list_posts("Non-Matching") == []
@@ -64,17 +71,20 @@ defmodule Blog.PostsTest do
     end
 
     test "get_post!/1 returns the post with given id" do
-      post = post_fixture()
-      assert Posts.get_post!(post.id) == Repo.preload(post, :comments)
+      user = user_fixture()
+      post = post_fixture(%{user_id: user.id})
+      assert Posts.get_post!(post.id) == Repo.preload(post, [:user, comments: [:user]])
     end
 
     test "create_post/1 with valid data creates a post" do
+      user = user_fixture()
       title = "some title #{NaiveDateTime.utc_now}"
       valid_attrs = %{
         title: title,
         content: "some content",
         published_on: ~D[2023-12-12],
-        visible: true
+        visible: true,
+        user_id: user.id
       }
 
       assert {:ok, %Post{} = post} = Posts.create_post(valid_attrs)
@@ -85,19 +95,42 @@ defmodule Blog.PostsTest do
     end
 
     test "create_post/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Posts.create_post(@invalid_attrs)
+      user = user_fixture()
+      assert {:error, %Ecto.Changeset{}} = Posts.create_post(@invalid_attrs|>Enum.into(%{user_id: user.id}))
+    end
+
+    test "create_post/1 posts are created with a user" do
+      user = user_fixture()
+      title = "some title #{NaiveDateTime.utc_now}"
+      valid_attrs = %{
+        title: title,
+        content: "some content",
+        published_on: ~D[2023-12-12],
+        visible: true,
+        user_id: user.id
+      }
+
+      assert {:ok, %Post{} = post} = Posts.create_post(valid_attrs)
+      assert post.title == title
+      assert post.content == "some content"
+      assert post.published_on == ~D[2023-12-12]
+      assert post.visible == true
+      assert post.user_id == user.id
     end
 
     test "update_post/2 with valid data updates the post" do
+      user = user_fixture()
       title = "some title #{NaiveDateTime.utc_now}"
 
-      post = post_fixture()
+      post = post_fixture(
+      user_id: user.id)
 
       update_attrs = %{
         title: title,
         content: "some content",
         published_on: ~D[2023-12-23],
-        visible: false
+        visible: false,
+        user_id: user.id
       }
 
       assert {:ok, %Post{} = post} = Posts.update_post(post, update_attrs)
@@ -108,27 +141,31 @@ defmodule Blog.PostsTest do
     end
 
     test "update_post/2 with invalid data returns error changeset" do
-      post = post_fixture()
-      assert {:error, %Ecto.Changeset{}} = Posts.update_post(post, @invalid_attrs)
+      user = user_fixture()
+      post = post_fixture(%{user_id: user.id})
+      assert {:error, %Ecto.Changeset{}} = Posts.update_post(post, @invalid_attrs|>Enum.into(%{user_id: user.id}))
 
-      assert Posts.get_post!(post.id) == Repo.preload(post, :comments)
+      assert Posts.get_post!(post.id) == Repo.preload(post, [:user, comments: [:user]])
     end
 
     test "delete_post/1 deletes the post" do
-      post = post_fixture()
+      user = user_fixture()
+      post = post_fixture(%{user_id: user.id})
       assert {:ok, %Post{}} = Posts.delete_post(post)
       assert_raise Ecto.NoResultsError, fn -> Posts.get_post!(post.id) end
     end
 
     test "change_post/1 returns a post changeset" do
-      post = post_fixture()
+      user = user_fixture()
+      post = post_fixture(%{user_id: user.id})
       assert %Ecto.Changeset{} = Posts.change_post(post)
     end
 
     test "get_post!/1 returns the post with given id and associated comments" do
-      post = post_fixture()
-      comment = comment_fixture(post_id: post.id)
-      assert Posts.get_post!(post.id).comments == [comment]
+      user = user_fixture()
+      post = post_fixture(%{user_id: user.id})
+      comment = comment_fixture( %{user_id: user.id,post_id: post.id})
+      assert Posts.get_post!(post.id).comments ==  [Repo.preload(comment, :user)]
     end
   end
 end

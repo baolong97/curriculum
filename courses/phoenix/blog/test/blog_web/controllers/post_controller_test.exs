@@ -2,6 +2,7 @@ defmodule BlogWeb.PostControllerTest do
   use BlogWeb.ConnCase
 
   import Blog.PostsFixtures
+  import Blog.AccountsFixtures
 
   @create_attrs %{title: "some title", subtitle: "some subtitle", content: "some content"}
   @update_attrs %{title: "some updated title", subtitle: "some updated subtitle", content: "some updated content"}
@@ -9,31 +10,41 @@ defmodule BlogWeb.PostControllerTest do
 
   describe "index" do
     test "lists all posts", %{conn: conn} do
+      user = user_fixture()
+      conn = conn |> log_in_user(user)
       conn = get(conn, ~p"/posts")
       assert html_response(conn, 200) =~ "Listing Posts"
     end
   end
 
   test "search for posts - non-matching", %{conn: conn} do
-    post = post_fixture(title: "some title #{NaiveDateTime.utc_now}")
+    user = user_fixture()
+    conn = conn |> log_in_user(user)
+    post = post_fixture(title: "some title #{NaiveDateTime.utc_now}",user_id: user.id)
     conn = get(conn, ~p"/posts", title: "Non-Matching")
     refute html_response(conn, 200) =~ post.title
   end
 
   test "search for posts - exact match", %{conn: conn} do
-    post = post_fixture(title: "some title #{NaiveDateTime.utc_now}")
+    user = user_fixture()
+    conn = conn |> log_in_user(user)
+    post = post_fixture(title: "some title #{NaiveDateTime.utc_now}",user_id: user.id)
     conn = get(conn, ~p"/posts", title: "some title")
     assert html_response(conn, 200) =~ post.title
   end
 
   test "search for posts - partial match", %{conn: conn} do
-    post = post_fixture(title: "some title #{NaiveDateTime.utc_now}")
+    user = user_fixture()
+    conn = conn |> log_in_user(user)
+    post = post_fixture(title: "some title #{NaiveDateTime.utc_now}", user_id: user.id)
     conn = get(conn, ~p"/posts", title: "itl")
     assert html_response(conn, 200) =~ post.title
   end
 
   describe "new post" do
     test "renders form", %{conn: conn} do
+      user = user_fixture()
+      conn = conn |> log_in_user(user)
       conn = get(conn, ~p"/posts/new")
       assert html_response(conn, 200) =~ "New Post"
     end
@@ -41,7 +52,14 @@ defmodule BlogWeb.PostControllerTest do
 
   describe "create post" do
     test "redirects to show when data is valid", %{conn: conn} do
-      conn = post(conn, ~p"/posts", post: @create_attrs)
+      user = user_fixture()
+      conn = conn |> log_in_user(user)
+      conn = post(conn, ~p"/posts", post: %{
+        title: "some title",
+        subtitle: "title#{System.unique_integer()}",
+        content: "some content",
+        user_id: user.id
+      })
 
       assert %{id: id} = redirected_params(conn)
 
@@ -52,15 +70,36 @@ defmodule BlogWeb.PostControllerTest do
     end
 
     test "renders errors when data is invalid", %{conn: conn} do
+      user = user_fixture()
+      conn = conn |> log_in_user(user)
       conn = post(conn, ~p"/posts", post: @invalid_attrs)
       assert html_response(conn, 200) =~ "New Post"
+    end
+
+    test "posts are created with a user", %{conn: conn} do
+      user = user_fixture()
+      conn = conn |> log_in_user(user)
+      conn = post(conn, ~p"/posts", post: %{
+        title: "some title",
+        subtitle: "title#{System.unique_integer()}",
+        content: "some content",
+        user_id: user.id
+      })
+
+      assert %{id: id} = redirected_params(conn)
+
+      assert redirected_to(conn) == ~p"/posts/#{id}"
+
+      conn = get(conn, ~p"/posts/#{id}")
+      assert html_response(conn, 200) =~ "of #{user.username}"
     end
   end
 
   describe "edit post" do
     setup [:create_post]
 
-    test "renders form for editing chosen post", %{conn: conn, post: post} do
+    test "renders form for editing chosen post", %{conn: conn, post: post, user: user} do
+      conn = conn |> log_in_user(user)
       conn = get(conn, ~p"/posts/#{post}/edit")
       assert html_response(conn, 200) =~ "Edit Post"
     end
@@ -69,7 +108,8 @@ defmodule BlogWeb.PostControllerTest do
   describe "update post" do
     setup [:create_post]
 
-    test "redirects when data is valid", %{conn: conn, post: post} do
+    test "redirects when data is valid", %{conn: conn, post: post, user: user} do
+      conn = conn |> log_in_user(user)
       conn = put(conn, ~p"/posts/#{post}", post: @update_attrs)
       assert redirected_to(conn) == ~p"/posts/#{post}"
 
@@ -77,7 +117,8 @@ defmodule BlogWeb.PostControllerTest do
       assert html_response(conn, 200) =~ "some updated title"
     end
 
-    test "renders errors when data is invalid", %{conn: conn, post: post} do
+    test "renders errors when data is invalid", %{conn: conn, post: post, user: user} do
+      conn = conn |> log_in_user(user)
       conn = put(conn, ~p"/posts/#{post}", post: @invalid_attrs)
       assert html_response(conn, 200) =~ "Edit Post"
     end
@@ -86,7 +127,8 @@ defmodule BlogWeb.PostControllerTest do
   describe "delete post" do
     setup [:create_post]
 
-    test "deletes chosen post", %{conn: conn, post: post} do
+    test "deletes chosen post", %{conn: conn, post: post, user: user} do
+      conn = conn |> log_in_user(user)
       conn = delete(conn, ~p"/posts/#{post}")
       assert redirected_to(conn) == ~p"/posts"
 
@@ -97,12 +139,13 @@ defmodule BlogWeb.PostControllerTest do
   end
 
   test "the post page displays comments on the post", %{conn: conn} do
-    conn = post(conn, ~p"/posts", post: @create_attrs)
+    user = user_fixture()
+    conn = conn |> log_in_user(user)
+    conn = post(conn, ~p"/posts", post: @create_attrs|> Enum.into(%{user_id: user.id}))
 
     assert %{id: id} = redirected_params(conn)
 
-
-    comment_conn = post(conn, ~p"/comments", comment: %{post_id: id, content: "comment content"})
+    post(conn, ~p"/comments", comment: %{post_id: id, content: "comment content", user_id: user.id})
 
     assert redirected_to(conn) == ~p"/posts/#{id}"
 
@@ -112,7 +155,8 @@ defmodule BlogWeb.PostControllerTest do
   end
 
   defp create_post(_) do
-    post = post_fixture()
-    %{post: post}
+    user = user_fixture()
+    post = post_fixture(user_id: user.id)
+    %{post: post, user: user}
   end
 end

@@ -18,16 +18,18 @@ defmodule Blog.Posts do
 
   """
   def list_posts(title) do
-    now =  NaiveDateTime.utc_now
+    now = NaiveDateTime.utc_now()
 
     search = "%#{title}%"
-    query = from(
-      p in Post,
-      where: ilike(p.title,^search),
-      where: [visible: true],
-      where: p.published_on < ^now,
-      order_by: [desc: :inserted_at]
-    )
+
+    query =
+      from(
+        p in Post,
+        where: ilike(p.title, ^search),
+        where: [visible: true],
+        where: p.published_on < ^now,
+        order_by: [desc: :inserted_at]
+      )
 
     Repo.all(query)
   end
@@ -42,13 +44,16 @@ defmodule Blog.Posts do
 
   """
   def list_posts do
-    now =  NaiveDateTime.utc_now
-    query = from(
-      p in Post,
-      where: [visible: true],
-      where: p.published_on < ^now,
-      order_by: [desc: :inserted_at]
-    )
+    now = NaiveDateTime.utc_now()
+
+    query =
+      from(
+        p in Post,
+        where: [visible: true],
+        where: p.published_on < ^now,
+        order_by: [desc: :inserted_at]
+      )
+
     Repo.all(query)
   end
 
@@ -67,7 +72,7 @@ defmodule Blog.Posts do
 
   """
   def get_post!(id) do
-    post = from(p in Post, preload: [:comments]) |> Repo.get!(id)
+    post = from(p in Post, preload: [:user, comments: [:user]]) |> Repo.get!(id)
 
     post
   end

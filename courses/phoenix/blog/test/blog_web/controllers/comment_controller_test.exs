@@ -1,7 +1,7 @@
 defmodule BlogWeb.CommentControllerTest do
   use BlogWeb.ConnCase
 
-  import Blog.CommentsFixtures
+  import Blog.AccountsFixtures
 
   # @create_attrs %{content: "some content"}
   # @update_attrs %{content: "some updated content"}
@@ -23,16 +23,28 @@ defmodule BlogWeb.CommentControllerTest do
 
   describe "create comment" do
     test "redirects to show when data is valid", %{conn: conn} do
-      post_conn = post(conn, ~p"/posts", post: %{
-        title: "some title",
-        content: "some content"
-      })
+      user = user_fixture()
+      conn = conn |> log_in_user(user)
+
+      post_conn =
+        post(conn, ~p"/posts",
+          post: %{
+            title: "some title",
+            content: "some content",
+            user_id: user.id
+          }
+        )
+
       assert %{id: post_id} = redirected_params(post_conn)
 
-      conn = post(conn, ~p"/comments", comment: %{
-        post_id: post_id,
-        content: "some comment"
-      })
+      conn =
+        post(conn, ~p"/comments",
+          comment: %{
+            post_id: post_id,
+            content: "some comment",
+            user_id: user.id
+          }
+        )
 
       assert %{id: post_id} = redirected_params(conn)
       assert redirected_to(conn) == ~p"/posts/#{post_id}"
@@ -40,10 +52,41 @@ defmodule BlogWeb.CommentControllerTest do
       assert html_response(conn, 200) =~ "some comment"
     end
 
-  #   test "renders errors when data is invalid", %{conn: conn} do
-  #     conn = post(conn, ~p"/comments", comment: @invalid_attrs)
-  #     assert html_response(conn, 200) =~ "New Comment"
-  #   end
+    test "comments are created with a user", %{conn: conn} do
+      user = user_fixture()
+      conn = conn |> log_in_user(user)
+
+      post_conn =
+        post(conn, ~p"/posts",
+          post: %{
+            title: "some title",
+            content: "some content",
+            user_id: user.id
+          }
+        )
+
+      assert %{id: post_id} = redirected_params(post_conn)
+
+      conn =
+        post(conn, ~p"/comments",
+          comment: %{
+            post_id: post_id,
+            content: "some comment",
+            user_id: user.id
+          }
+        )
+
+      assert %{id: post_id} = redirected_params(conn)
+      assert redirected_to(conn) == ~p"/posts/#{post_id}"
+      conn = get(conn, ~p"/posts/#{post_id}")
+      assert html_response(conn, 200) =~ "some comment"
+      assert html_response(conn, 200) =~ "by #{user.username}"
+    end
+
+    #   test "renders errors when data is invalid", %{conn: conn} do
+    #     conn = post(conn, ~p"/comments", comment: @invalid_attrs)
+    #     assert html_response(conn, 200) =~ "New Comment"
+    #   end
   end
 
   # describe "edit comment" do
