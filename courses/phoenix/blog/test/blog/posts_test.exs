@@ -12,19 +12,21 @@ defmodule Blog.PostsTest do
 
     import Blog.AccountsFixtures
 
+    import Blog.TagsFixtures
+
     @invalid_attrs %{title: nil, subtitle: nil, content: nil}
 
     test "list_posts/0 returns all posts" do
       user = user_fixture()
-      post = post_fixture(%{user_id: user.id})
-      assert Posts.list_posts() == [post]
+      post = post_fixture(%{user_id: user.id})|>Map.delete(:tags)
+      assert Posts.list_posts() |>Enum.map(fn post -> Map.delete(post,:tags) end) == [post]
     end
 
     test "list_posts/0 returns all posts with visible: true" do
       user = user_fixture()
       post_fixture(%{visible: false, user_id: user.id})
-      post = post_fixture(%{user_id: user.id})
-      assert Posts.list_posts() == [post]
+      post = post_fixture(%{user_id: user.id})|>Map.delete(:tags)
+      assert Posts.list_posts()|>Enum.map(fn post -> Map.delete(post,:tags) end) == [post]
     end
 
     test "list_posts/0 posts are displayed from newest" do
@@ -42,32 +44,32 @@ defmodule Blog.PostsTest do
     test "list_posts/0 posts with a published date in the future are filtered from the list of posts" do
       user = user_fixture()
       post_fixture(%{published_on: ~D[4023-12-26], user_id: user.id})
-      post = post_fixture(%{user_id: user.id})
-      assert Posts.list_posts() == [post]
+      post = post_fixture(%{user_id: user.id})|>Map.delete(:tags)
+      assert Posts.list_posts()|>Enum.map(fn post -> Map.delete(post,:tags) end) == [post]
     end
 
     test "list_posts/1 filters posts by partial and case-insensitive title" do
       user = user_fixture()
-      post = post_fixture(title: "Title #{NaiveDateTime.utc_now}", user_id: user.id)
+      post = post_fixture(title: "Title #{NaiveDateTime.utc_now}", user_id: user.id)|>Map.delete(:tags)
 
       # non-matching
       assert Posts.list_posts("Non-Matching") == []
       # exact match
-      assert Posts.list_posts("Title") == [post]
+      assert Posts.list_posts("Title") |>Enum.map(fn post -> Map.delete(post,:tags) end) == [post]
       # partial match end
-      assert Posts.list_posts("tle") == [post]
+      assert Posts.list_posts("tle") |>Enum.map(fn post -> Map.delete(post,:tags) end) == [post]
       # partial match front
-      assert Posts.list_posts("Titl") == [post]
+      assert Posts.list_posts("Titl") |>Enum.map(fn post -> Map.delete(post,:tags) end) == [post]
       # partial match middle
-      assert Posts.list_posts("itl") == [post]
+      assert Posts.list_posts("itl") |>Enum.map(fn post -> Map.delete(post,:tags) end) == [post]
       # case insensitive lower
-      assert Posts.list_posts("title") == [post]
+      assert Posts.list_posts("title") |>Enum.map(fn post -> Map.delete(post,:tags) end) == [post]
       # case insensitive upper
-      assert Posts.list_posts("TITLE") == [post]
+      assert Posts.list_posts("TITLE") |>Enum.map(fn post -> Map.delete(post,:tags) end) == [post]
       # case insensitive and partial match
-      assert Posts.list_posts("ITL") == [post]
+      assert Posts.list_posts("ITL") |>Enum.map(fn post -> Map.delete(post,:tags) end) == [post]
       # empty
-      assert Posts.list_posts("") == [post]
+      assert Posts.list_posts("") |>Enum.map(fn post -> Map.delete(post,:tags) end) == [post]
     end
 
     test "get_post!/1 returns the post with given id" do
@@ -167,5 +169,68 @@ defmodule Blog.PostsTest do
       comment = comment_fixture( %{user_id: user.id,post_id: post.id})
       assert Posts.get_post!(post.id).comments ==  [Repo.preload(comment, :user)]
     end
+
+    test "create_post/1 with tags" do
+      user = user_fixture()
+      tag1 = tag_fixture()
+      tag2 = tag_fixture()
+
+      valid_attrs1 = %{content: "some content", title: "post 1", user_id: user.id, visible: true}
+      valid_attrs2 = %{content: "some content", title: "post 2", user_id: user.id, visible: true}
+
+      assert {:ok, %Post{} = post1} = Posts.create_post(valid_attrs1, [tag1, tag2])
+      assert {:ok, %Post{} = post2} = Posts.create_post(valid_attrs2, [tag1])
+
+      # posts have many tags
+      assert Repo.preload(post1, :tags).tags == [tag1, tag2]
+      assert Repo.preload(post2, :tags).tags == [tag1]
+
+      # tags have many posts
+      # we preload posts: [:tags] because posts contain the list of tags when created
+      assert Repo.preload(tag1, posts: [:tags]).posts == [post1, post2]
+      assert Repo.preload(tag2, posts: [:tags]).posts == [post1]
+    end
+
+
+
+    test "update_post/1 with tags" do
+      user = user_fixture()
+      tag1 = tag_fixture()
+      tag2 = tag_fixture()
+
+      valid_attrs1 = %{content: "some content", title: "post 1", user_id: user.id, visible: true}
+      valid_attrs2 = %{content: "some content", title: "post 2", user_id: user.id, visible: true}
+
+      assert {:ok, %Post{} = post1} = Posts.create_post(valid_attrs1, [tag1, tag2])
+      assert {:ok, %Post{} = post2} = Posts.create_post(valid_attrs2, [tag1])
+
+      assert {:ok, %Post{} = post1} = Posts.update_post(post1, valid_attrs1, [tag1])
+      assert {:ok, %Post{} = post2} = Posts.update_post(post2, valid_attrs2, [tag1,tag2])
+
+      # posts have many tags
+      assert Repo.preload(post1, :tags).tags == [tag1]
+      assert Repo.preload(post2, :tags).tags == [tag1, tag2]
+
+      # tags have many posts
+      # we preload posts: [:tags] because posts contain the list of tags when created
+      assert Repo.preload(tag1, posts: [:tags]).posts == [post1, post2]
+      assert Repo.preload(tag2, posts: [:tags]).posts == [post2]
+    end
+
+    test "delete_post/1 with tags" do
+      user = user_fixture()
+      tag1 = tag_fixture()
+
+      valid_attrs1 = %{content: "some content", title: "post 1", user_id: user.id, visible: true}
+      valid_attrs2 = %{content: "some content", title: "post 2", user_id: user.id, visible: true}
+
+      assert {:ok, %Post{} = post1} = Posts.create_post(valid_attrs1, [tag1])
+      assert {:ok, %Post{} = post2} = Posts.create_post(valid_attrs2, [tag1])
+
+      Posts.delete_post(post2)
+
+      assert Repo.preload(tag1, posts: [:tags]).posts == [post1]
+    end
+
   end
 end

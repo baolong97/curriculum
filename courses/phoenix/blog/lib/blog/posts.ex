@@ -17,15 +17,17 @@ defmodule Blog.Posts do
       [%Post{}, ...]
 
   """
-  def list_posts(title) do
+  def list_posts(keyword) do
     now = NaiveDateTime.utc_now()
 
-    search = "%#{title}%"
+    search = "%#{keyword}%"
 
     query =
       from(
         p in Post,
-        where: ilike(p.title, ^search),
+        # join: t in assoc(p, :tags),
+        # where:  ilike(p.title, ^search) or ilike(t.name, ^search) ,
+        where:  ilike(p.title, ^search),
         where: [visible: true],
         where: p.published_on < ^now,
         order_by: [desc: :inserted_at]
@@ -72,7 +74,7 @@ defmodule Blog.Posts do
 
   """
   def get_post!(id) do
-    post = from(p in Post, preload: [:user, comments: [:user]]) |> Repo.get!(id)
+    post = from(p in Post, preload: [:user, :tags, comments: [:user]]) |> Repo.get!(id)
 
     post
   end
@@ -89,9 +91,9 @@ defmodule Blog.Posts do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_post(attrs \\ %{}) do
+  def create_post(attrs \\ %{}, tags \\ []) do
     %Post{}
-    |> Post.changeset(attrs)
+    |> Post.changeset(attrs, tags)
     |> Repo.insert()
   end
 
@@ -107,9 +109,9 @@ defmodule Blog.Posts do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_post(%Post{} = post, attrs) do
+  def update_post(%Post{} = post, attrs, tags \\ []) do
     post
-    |> Post.changeset(attrs)
+    |> Post.changeset(attrs, tags)
     |> Repo.update()
   end
 

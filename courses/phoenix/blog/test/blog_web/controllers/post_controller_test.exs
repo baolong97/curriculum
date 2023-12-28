@@ -1,8 +1,10 @@
 defmodule BlogWeb.PostControllerTest do
   use BlogWeb.ConnCase
+  alias Blog.Posts
 
   import Blog.PostsFixtures
   import Blog.AccountsFixtures
+  import Blog.TagsFixtures
 
   @create_attrs %{title: "some title", subtitle: "some subtitle", content: "some content"}
   @update_attrs %{title: "some updated title", subtitle: "some updated subtitle", content: "some updated content"}
@@ -28,7 +30,7 @@ defmodule BlogWeb.PostControllerTest do
   test "search for posts - exact match", %{conn: conn} do
     user = user_fixture()
     conn = conn |> log_in_user(user)
-    post = post_fixture(title: "some title #{NaiveDateTime.utc_now}",user_id: user.id)
+    post = post_fixture(title: "some title #{NaiveDateTime.utc_now}", user_id: user.id)
     conn = get(conn, ~p"/posts", title: "some title")
     assert html_response(conn, 200) =~ post.title
   end
@@ -152,6 +154,33 @@ defmodule BlogWeb.PostControllerTest do
     conn = get(conn, ~p"/posts/#{id}")
     assert html_response(conn, 200) =~ "Post #{id}"
     assert html_response(conn, 200) =~ "comment content"
+  end
+
+  test "create post with tags", %{conn: conn} do
+    # Arrange: Setup the necessary data
+    user = user_fixture()
+    conn = log_in_user(conn, user)
+
+    tag1 = tag_fixture(name: "tag 1 name")
+    tag2 = tag_fixture(name: "tag 2 name")
+
+    create_attrs = %{
+      content: "some content",
+      title: "some title",
+      visible: true,
+      published_on: DateTime.utc_now(),
+      user_id: user.id,
+      tag_ids: [tag1.id, tag2.id]
+    }
+
+    # Act: send the HTTP POST request
+    conn = post(conn, ~p"/posts", post: create_attrs)
+
+    # Assert: Verify the response is redirected and that the post is created with tags.
+    assert %{id: id} = redirected_params(conn)
+    assert redirected_to(conn) == ~p"/posts/#{id}"
+
+    assert Posts.get_post!(id).tags == [tag1, tag2]
   end
 
   defp create_post(_) do
