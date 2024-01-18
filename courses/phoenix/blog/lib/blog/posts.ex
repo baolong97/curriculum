@@ -27,7 +27,7 @@ defmodule Blog.Posts do
         p in Post,
         # join: t in assoc(p, :tags),
         # where:  ilike(p.title, ^search) or ilike(t.name, ^search) ,
-        where:  ilike(p.title, ^search),
+        where: ilike(p.title, ^search),
         where: [visible: true],
         where: p.published_on < ^now,
         order_by: [desc: :inserted_at]
@@ -74,7 +74,8 @@ defmodule Blog.Posts do
 
   """
   def get_post!(id) do
-    post = from(p in Post, preload: [:user, :tags, comments: [:user]]) |> Repo.get!(id)
+    post =
+      from(p in Post, preload: [:user, :tags, :cover_image, comments: [:user]]) |> Repo.get!(id)
 
     post
   end
@@ -111,6 +112,7 @@ defmodule Blog.Posts do
   """
   def update_post(%Post{} = post, attrs, tags \\ []) do
     post
+    |> Repo.preload(:cover_image)
     |> Post.changeset(attrs, tags)
     |> Repo.update()
   end

@@ -20,8 +20,6 @@ defmodule BlogWeb.Router do
   scope "/", BlogWeb do
     pipe_through [:browser, :require_authenticated_user]
 
-    get "/posts/:id/add_comment", CommentController, :add_comment
-
     resources "/posts", PostController, only: [:new, :edit, :update, :create, :delete]
 
     resources "/comments", CommentController
@@ -37,8 +35,6 @@ defmodule BlogWeb.Router do
 
     resources "/tags", TagController
   end
-
-
 
   # Other scopes may use custom stacks.
   # scope "/api", BlogWeb do

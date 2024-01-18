@@ -46,7 +46,6 @@ defmodule BlogWeb.PostController do
         |> redirect(to: ~p"/posts/#{post}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
-
         render(conn, :new,
           changeset: changeset,
           tag_options: tag_options(Enum.map(tags, & &1.id))
@@ -56,11 +55,12 @@ defmodule BlogWeb.PostController do
 
   def show(conn, %{"id" => id}) do
     comment_changeset = Comments.change_comment(%Comment{})
-    post = Posts.get_post!(id)|>Blog.Repo.preload(:tags)
+    post = Posts.get_post!(id) |> Blog.Repo.preload(:tags)
 
-    render(conn, :show, post: post,
+    render(conn, :show,
+      post: post,
       comment_changeset: comment_changeset,
-      tags: post.tags|>Enum.map(fn tag -> tag.name end)|>Enum.join(", ")
+      tags: post.tags |> Enum.map(fn tag -> tag.name end) |> Enum.join(", ")
     )
   end
 
@@ -86,11 +86,10 @@ defmodule BlogWeb.PostController do
         |> redirect(to: ~p"/posts/#{post}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
-
         render(conn, :edit,
           post: post,
           changeset: changeset,
-          tag_options: tag_options(Enum.map(tags, & &1.id)),
+          tag_options: tag_options(Enum.map(tags, & &1.id))
         )
     end
   end
