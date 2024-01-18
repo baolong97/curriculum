@@ -78,7 +78,7 @@ See [start.livemd](https://github.com/DockYard-Academy/curriculum/blob/main/star
 * Phoenix And Ecto One-to-Many Associations
 * Phoenix Authentication
 * Phoenix And Ecto Many-to-Many Relationships
-* Phoenix And Ecto One-to-One Relationships
+* Phoenix And Ecto One-to-One Relationships 
 * Tailwind
 * Deployment
 * Custom Feature
