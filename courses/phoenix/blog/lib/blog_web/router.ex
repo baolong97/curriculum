@@ -28,7 +28,7 @@ defmodule BlogWeb.Router do
   scope "/", BlogWeb do
     pipe_through [:browser]
 
-    get "/", PageController, :home
+    get "/", PageController, :home1
 
     get "/posts/:id/add_comment", CommentController, :add_comment
     resources "/posts", PostController
