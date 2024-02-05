@@ -29,7 +29,9 @@ config :pic_chat, PicChatWeb.Endpoint,
 #
 # For production it's recommended to configure a different adapter
 # at the `config/runtime.exs`.
-config :pic_chat, PicChat.Mailer, adapter: Swoosh.Adapters.Local
+config :pic_chat, PicChat.Mailer,
+  adapter: Swoosh.Adapters.Gmail,
+  access_token: System.get_env("PIC_CHAT_MAILER_TOKEN")
 
 # Configure esbuild (the version is required)
 config :esbuild,
@@ -60,6 +62,17 @@ config :logger, :console,
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
+
+config :pic_chat, Oban,
+  repo: PicChat.Repo,
+  plugins: [
+    Oban.Plugins.Pruner,
+    {Oban.Plugins.Cron,
+     crontab: [
+       {"0 8 * * *", PicChat.Workers.DailySummaryEmail}
+     ]}
+  ],
+  queues: [default: 10]
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

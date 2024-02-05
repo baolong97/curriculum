@@ -108,4 +108,14 @@ defmodule PicChat.Messages do
   def change_message(%Message{} = message, attrs \\ %{}) do
     Message.changeset(message, attrs)
   end
+
+  def todays_messages do
+    today = Date.utc_today()
+
+    from(m in Message,
+      where: fragment("date(inserted_at) = ?", ^today),
+      order_by: [desc: :inserted_at, desc: :id]
+    )
+    |> Repo.all()
+  end
 end

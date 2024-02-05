@@ -350,4 +350,9 @@ defmodule PicChat.Accounts do
       {:error, :user, changeset, _} -> {:error, changeset}
     end
   end
+
+  def subscriber_emails() do
+    from(u in User, where: u.subscribed == true, select: u.email)
+    |> Repo.all()
+  end
 end
