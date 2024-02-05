@@ -12,6 +12,8 @@
 <.table
   id="messages"
   rows={@streams.messages}
+  phx-hook="InfiniteScroll"
+  data-page={@page}
   row_click={fn {_id, message} -> JS.navigate(~p"/messages/#{message}") end}
 >
   <:col :let={{_id, message}} label="Picture"><img src={message.picture} /></:col>
@@ -35,6 +37,8 @@
     <% end %>
   </:action>
 </.table>
+
+<.button phx-click="load-more">Load More</.button>
 
 <.modal
   :if={@live_action in [:new, :edit]}

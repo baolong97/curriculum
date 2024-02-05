@@ -4,13 +4,18 @@ defmodule PicChatWeb.MessageLive.Index do
   alias PicChat.Messages
   alias PicChat.Messages.Message
 
+  @limit 10
+
   @impl true
   def mount(_params, _session, socket) do
     if connected?(socket) do
       PicChatWeb.Endpoint.subscribe("messages")
     end
 
-    {:ok, stream(socket, :messages, Messages.list_messages())}
+    {:ok,
+     socket
+     |> assign(:page, 1)
+     |> stream(:messages, Messages.list_messages(limit: @limit))}
   end
 
   @impl true
@@ -44,13 +49,19 @@ defmodule PicChatWeb.MessageLive.Index do
   @impl true
   def handle_info({PicChatWeb.MessageLive.FormComponent, {:new, message}}, socket) do
     # prepends the new message
-    {:noreply, stream_insert(socket, :messages, message, at: 0)}
+    {:noreply,
+     socket
+     |> push_event("highlight", %{id: message.id})
+     |> stream_insert(:messages, message, at: 0)}
   end
 
   @impl true
   def handle_info({PicChatWeb.MessageLive.FormComponent, {:edit, message}}, socket) do
     # updates the new message in its current position
-    {:noreply, stream_insert(socket, :messages, message)}
+    {:noreply,
+     socket
+     |> push_event("highlight", %{id: message.id})
+     |> stream_insert(:messages, message)}
   end
 
   def handle_info(
@@ -90,5 +101,22 @@ defmodule PicChatWeb.MessageLive.Index do
          "You are not authorized to delete this message."
        )}
     end
+  end
+
+  @impl true
+  def handle_event("load-more", _params, socket) do
+    offset = socket.assigns.page * @limit
+    messages = Messages.list_messages(offset: offset, limit: @limit)
+
+    {:noreply,
+     socket
+     |> assign(:page, socket.assigns.page + 1)
+     |> stream_insert_many(:messages, messages)}
+  end
+
+  defp stream_insert_many(socket, ref, messages) do
+    Enum.reduce(messages, socket, fn message, socket ->
+      stream_insert(socket, ref, message)
+    end)
   end
 end
