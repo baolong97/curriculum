@@ -89,9 +89,15 @@ defmodule User do
       iex> %User{}
       %User{username: nil, password: nil, age: nil, birthdate: nil, terms_and_conditions: nil}
   """
-  defstruct []
+  defstruct [:username, :password, :age, :birthdate, :terms_and_conditions]
 
-  @types %{}
+  @types %{
+    username: :string,
+    password: :string,
+    age: :integer,
+    birthdate: :date,
+    terms_and_conditions: :boolean
+  }
 
   @doc """
   Create a User changeset.
@@ -99,9 +105,15 @@ defmodule User do
   ## Examples
 
       iex> User.changeset(%User{}, %{username: "user1", password: "securepassword1", age: 20, terms_and_conditions: true})
-      #Ecto.Changeset<action: nil, changes: %{age: 20, password: "securepassword1", terms_and_conditions: true, username: "user1"}, errors: [], data: #User<>, valid?: true>
+      #Ecto.Changeset<action: nil, changes: %{password: "securepassword1", username: "user1", age: 20, terms_and_conditions: true}, errors: [], data: #User<>, valid?: true>
   """
   def changeset(%__MODULE__{} = user, params) do
+    {user, @types}
+    |> Ecto.Changeset.cast(params, Map.keys(@types))
+    |> Ecto.Changeset.validate_required([:username, :password])
+    |> Ecto.Changeset.validate_length(:username, min: 3, max: 12)
+    |> Ecto.Changeset.validate_length(:password, min: 12, max: 50)
+    |> Ecto.Changeset.validate_acceptance(:terms_and_conditions)
   end
 
   @doc """
@@ -118,6 +130,9 @@ defmodule User do
       {:error, _changeset}
   """
   def new(params) do
+    %__MODULE__{}
+    |> changeset(params)
+    |> Ecto.Changeset.apply_action(:update)
   end
 end
 ```
