@@ -134,7 +134,48 @@ You should rely on Ecto Changesets and your own custom validation to validate th
 
 ```elixir
 defmodule Book do
+  @types %{
+    title: :string,
+    content: :string,
+    published_on: :date,
+    category: :string,
+    books_sold: :integer,
+    publisher_email: :string,
+    author: :string,
+    has_license: :boolean,
+    price: :integer
+  }
+
+  @keys Map.keys(@types)
+
+  defstruct @keys
+
+  def changeset(%__MODULE__{} = user, params \\ %{}) do
+    {user, @types}
+    |> Ecto.Changeset.cast(params, @keys)
+    |> Ecto.Changeset.validate_required([:title, :content])
+    |> Ecto.Changeset.validate_length(:title, min: 3, max: 100)
+    |> Ecto.Changeset.validate_inclusion(:category, ["action", "fiction", "mystery"])
+    |> Ecto.Changeset.validate_number(:books_sold, greater_than_or_equal_to: 0)
+    |> Ecto.Changeset.validate_change(:publisher_email, fn :publisher_email, publisher_email ->
+      if Regex.match?(~r/\w+@\w+\.\w+/, publisher_email) do
+        []
+      else
+        [email: "invalid email"]
+      end
+    end)
+    |> Ecto.Changeset.validate_acceptance(:has_license)
+    |> Ecto.Changeset.validate_number(:price, greater_than: 0)
+  end
+
+  def new(params) do
+    %__MODULE__{}
+    |> changeset(params)
+    |> Ecto.Changeset.apply_action(:update)
+  end
 end
+
+Book.new(%{category: "invalid", email: "invalid", books_sold: -1, price: -1})
 ```
 
 ## Commit Your Progress
