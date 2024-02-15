@@ -101,6 +101,13 @@ Passing the function directly.
 
 ```elixir
 slow_function = fn -> Process.sleep(1000) end
+{microseconds, _result} = :timer.tc(slow_function)
+
+milliseconds = microseconds / 1000
+seconds = milliseconds / 1000
+IO.inspect(microseconds, label: "microseconds")
+IO.inspect(milliseconds, label: "milliseconds")
+IO.inspect(seconds, label: "seconds")
 ```
 
 ### Your Turn
@@ -130,6 +137,14 @@ defmodule MyModule do
     Process.sleep(1000)
   end
 end
+
+{microseconds, _result} = :timer.tc(&MyModule.slow_function/0)
+
+milliseconds = microseconds / 1000
+seconds = milliseconds / 1000
+IO.inspect(microseconds, label: "microseconds")
+IO.inspect(milliseconds, label: "milliseconds")
+IO.inspect(seconds, label: "seconds")
 ```
 
 ## Benchee
@@ -267,9 +282,13 @@ Use Benchee to compare accessing the **first** element instead of the last eleme
 You should notice the list is faster this time, or at least close to the same speed. You'll learn why in a future lesson.
 
 ```elixir
+size = 10000
+large_list = Enum.to_list(0..size)
+large_tuple = List.to_tuple(large_list)
+
 Benchee.run(%{
-  "access first element in list" => fn -> nil end,
-  "access first element in tuple" => fn -> nil end
+  "list" => fn -> Enum.at(large_list, 0) end,
+  "tuple" => fn -> elem(large_tuple, 0) end
 })
 ```
 
