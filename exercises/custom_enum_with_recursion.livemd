@@ -81,7 +81,10 @@ defmodule CustomEnum do
     iex> CustomEnum.reverse([4, 5, 6, 7])
     [7, 6, 5, 4]
   """
-  def reverse(list) do
+  def reverse(list) when length(list) <= 1, do: list
+
+  def reverse([head | tail]) do
+    reverse(tail) ++ [head]
   end
 
   @doc """
@@ -95,7 +98,11 @@ defmodule CustomEnum do
     iex> CustomEnum.map([5, 4, 3], fn integer -> is_integer(integer) end)
     [true, true, true]
   """
-  def map(list, callback_function) do
+  def map([], _), do: []
+  def map([x], callback_function), do: [callback_function.(x)]
+
+  def map([head | tail], callback_function) do
+    [callback_function.(head) | map(tail, callback_function)]
   end
 
   @doc """
@@ -110,7 +117,22 @@ defmodule CustomEnum do
     iex> CustomEnum.filter([1, "2", "3"], fn char -> is_bitstring(char) end)
     ["2", "3"]
   """
-  def filter(list, callback_function) do
+  def filter([], _), do: []
+
+  def filter([x], callback_function) do
+    if(callback_function.(x)) do
+      [x]
+    else
+      []
+    end
+  end
+
+  def filter([head | tail], callback_function) do
+    if callback_function.(head) do
+      [head | filter(tail, callback_function)]
+    else
+      filter(tail, callback_function)
+    end
   end
 
   @doc """
@@ -124,7 +146,11 @@ defmodule CustomEnum do
     iex> CustomEnum.sum([1, 1, 1])
     3
   """
-  def sum(list_of_integers) do
+  def sum([]), do: 0
+  def sum([x]), do: x
+
+  def sum([head | tail]) do
+    head + sum(tail)
   end
 
   @doc """
@@ -138,7 +164,11 @@ defmodule CustomEnum do
     iex> CustomEnum.join(["Hello", ",", " ", "World", "!"])
     "Hello, World!"
   """
-  def join(list_of_strings) do
+  def join([]), do: ""
+  def join([x]), do: x
+
+  def join([head | tail]) do
+    head <> join(tail)
   end
 end
 ```
@@ -150,7 +180,13 @@ We've installed the [Benchee](https://github.com/bencheeorg/benchee) project in 
 Benchmark your solution against the existing [Enum](https://hexdocs.pm/elixir/Enum.html) module. Is yours faster or slower? Keep in mind that the [Enum](https://hexdocs.pm/elixir/Enum.html) module contains implementations for all enumerables, not just lists.
 
 ```elixir
-
+Benchee.run(
+  %{
+    "CustomEnum.reverse" => fn input -> CustomEnum.reverse(input) end,
+    "Enum.reverse" => fn input -> Enum.reverse(input) end
+  },
+  inputs: [small: [1, 2, 3], medium: Enum.to_list(1..1000)]
+)
 ```
 
 ## Commit Your Progress
