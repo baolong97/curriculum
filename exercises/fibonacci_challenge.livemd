@@ -55,9 +55,32 @@ defmodule Fibonacci do
 
   ## Examples
 
-    iex> 
+    iex> Fibonacci.sequence(0)
+    []
+    iex> Fibonacci.sequence(1)
+    [0]
+    iex> Fibonacci.sequence(2)
+    [0, 1]
+    iex> Fibonacci.sequence(6)
+    [0, 1, 1, 2, 3, 5]
   """
-  def sequence(length) do
+  def sequence(0) do
+    []
+  end
+
+  def sequence(1) do
+    [0]
+  end
+
+  def sequence(2) do
+    [0, 1]
+  end
+
+  def sequence(n) do
+    Enum.reduce(1..(n - 2), sequence(2), fn _, acc ->
+      i = length(acc)
+      acc ++ [Enum.at(acc, i - 1) + Enum.at(acc, i - 2)]
+    end)
   end
 end
 ```
@@ -68,7 +91,27 @@ In the Elixir cell below, create a `FastFib` module. The `FastFib` module should
 
 ```elixir
 defmodule FastFib do
-  def sequence(length) do
+  @doc """
+  Generate the fibonacci sequence of a given length.
+
+  ## Examples
+
+    iex> Fibonacci.sequence(0)
+    []
+    iex> Fibonacci.sequence(1)
+    [0]
+    iex> Fibonacci.sequence(2)
+    [0, 1]
+    iex> Fibonacci.sequence(6)
+    [0, 1, 1, 2, 3, 5]
+  """
+  def sequence(n) when n < 0, do: []
+  def sequence(n), do: sequence(n, %{}, 0, 1, [])
+  defp sequence(0, _, _, _, acc), do: Enum.reverse(acc)
+
+  defp sequence(n, cache, a, b, acc) when n > 0 do
+    new_value = a + b
+    sequence(n - 1, Map.put(cache, n, new_value), b, new_value, [new_value | acc])
   end
 end
 ```
