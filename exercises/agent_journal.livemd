@@ -82,7 +82,8 @@ defmodule Journal do
 
       iex> {:ok, pid} = Journal.start_link(["Entry1", "Entry 2"])
   """
-  def start_link(_opts) do
+  def start_link(entries) do
+    Agent.start_link(fn -> entries end)
   end
 
   @doc """
@@ -102,6 +103,7 @@ defmodule Journal do
       iex> Journal.all_entries(pid)
       ["Entry 1", "Entry 2"]
        
+      
       Ascending order (default).
       
       iex> {:ok, pid} = Journal.start_link(["Entry 1", "Entry 2"])
@@ -115,6 +117,8 @@ defmodule Journal do
       ["Entry 2", "Entry 1"]
   """
   def all_entries(pid, opts \\ []) do
+    entries = Agent.get(pid, fn state -> state end)
+    if opts[:order] == :desc, do: Enum.reverse(entries), else: entries
   end
 
   @doc """
@@ -131,12 +135,15 @@ defmodule Journal do
     ["Entry 1", "Entry 2"]
   """
   def add_entry(pid, entry) do
+    Agent.update(pid, fn state -> state ++ [entry] end)
   end
 end
 ```
 
 ```elixir
-:
+{:ok, pid} = Journal.start_link([])
+Journal.add_entry(pid, "Test")
+Journal.all_entries(pid)
 ```
 
 ## Bonus: Advanced Journal
@@ -235,6 +242,9 @@ defmodule AdvancedJournal do
   """
   use Agent
 
+  @enforce_keys [:id, :title, :content, :created_at, :updated_at]
+  defstruct @enforce_keys
+
   @doc """
   Start the Agent process
 
@@ -248,7 +258,14 @@ defmodule AdvancedJournal do
 
       iex> {:ok, pid} = AdvancedJournal.start_link([%{title: "Entry 1", content: "Entry 1 Content"}])
   """
-  def start_link(opts) do
+  def start_link(entry_attrs) do
+    entries =
+      entry_attrs
+      |> Enum.with_index()
+      |> Enum.map(fn {attrs, index} -> make_entry(index, attrs) end)
+      |> Enum.reverse()
+
+    Agent.start_link(fn -> %{entries: entries, current_index: Enum.count(entries)} end)
   end
 
   @doc """
@@ -275,31 +292,21 @@ defmodule AdvancedJournal do
       Multiple entries. Order is ascending by default.
 
       iex> {:ok, pid} = AdvancedJournal.start_link([%{title: "Entry 1", content: "Entry 1"}, %{title: "Entry 2", content: "Entry 2"}])
-      iex>
-      ..>[
-      ..>  %AdvancedJournal{id: 0, title: "Entry 1", content: "Entry 1", created_at: _, updated_at: _},
-      ..>  %AdvancedJournal{id: 1, title: "Entry 2", content: "Entry 2", created_at: _, updated_at: _}
-      ..>] = AdvancedJournal.all_entries(pid)
+      iex>[%AdvancedJournal{id: 0, title: "Entry 1", content: "Entry 1", created_at: _, updated_at: _}, %AdvancedJournal{id: 1, title: "Entry 2", content: "Entry 2", created_at: _, updated_at: _}] = AdvancedJournal.all_entries(pid)
 
       Ascending order (default).
 
       iex> {:ok, pid} = AdvancedJournal.start_link([%{title: "Entry 1", content: "Entry 1"}, %{title: "Entry 2", content: "Entry 2"}])
-      iex>
-      ..>[
-      ..>  %AdvancedJournal{id: 0, title: "Entry 1", content: "Entry 1", created_at: _, updated_at: _},
-      ..>  %AdvancedJournal{id: 1, title: "Entry 2", content: "Entry 2", created_at: _, updated_at: _}
-      ..>] = AdvancedJournal.all_entries(pid, order: :asc)
+      iex>[%AdvancedJournal{id: 0, title: "Entry 1", content: "Entry 1", created_at: _, updated_at: _},%AdvancedJournal{id: 1, title: "Entry 2", content: "Entry 2", created_at: _, updated_at: _}] = AdvancedJournal.all_entries(pid, order: :asc)
 
       Descending order.
 
       iex> {:ok, pid} = AdvancedJournal.start_link([%{title: "Entry 1", content: "Entry 1"}, %{title: "Entry 2", content: "Entry 2"}])
-      iex>
-      ..>[
-      ..>  %AdvancedJournal{id: 1, title: "Entry 2", content: "Entry 2", created_at: _, updated_at: _}
-      ..>  %AdvancedJournal{id: 0, title: "Entry 1", content: "Entry 1", created_at: _, updated_at: _},
-      ..>] = AdvancedJournal.all_entries(pid, order: :desc)
+      iex>[%AdvancedJournal{id: 1, title: "Entry 2", content: "Entry 2", created_at: _, updated_at: _},%AdvancedJournal{id: 0, title: "Entry 1", content: "Entry 1", created_at: _, updated_at: _}] = AdvancedJournal.all_entries(pid, order: :desc)
   """
   def all_entries(pid, opts \\ []) do
+    entries = Agent.get(pid, fn state -> state.entries end)
+    if opts[:order] == :desc, do: entries, else: Enum.reverse(entries)
   end
 
   @doc """
@@ -318,13 +325,18 @@ defmodule AdvancedJournal do
       iex> {:ok, pid} = AdvancedJournal.start_link([])
       iex> AdvancedJournal.add_entry(pid, %{title: "Entry 1", content: "Entry 1"})
       iex> AdvancedJournal.add_entry(pid, %{title: "Entry 2", content: "Entry 2"})
-      iex>
-      ..>[
-      ..>  %AdvancedJournal{id: 0, title: "Entry 1", content: "Entry 1", created_at: _, updated_at: _}
-      ..>  %AdvancedJournal{id: 1, title: "Entry 2", content: "Entry 2", created_at: _, updated_at: _},
-      ..>] = AdvancedJournal.all_entries(pid)
+      iex>[%AdvancedJournal{id: 0, title: "Entry 1", content: "Entry 1", created_at: _, updated_at: _},%AdvancedJournal{id: 1, title: "Entry 2", content: "Entry 2", created_at: _, updated_at: _}] = AdvancedJournal.all_entries(pid)
   """
   def add_entry(pid, attrs) do
+    Agent.update(pid, fn state ->
+      entry = make_entry(state.current_index, attrs)
+
+      %{
+        state
+        | current_index: state.current_index + 1,
+          entries: [entry | state.entries]
+      }
+    end)
   end
 
   @doc """
@@ -338,6 +350,13 @@ defmodule AdvancedJournal do
       iex> [%AdvancedJournal{id: 0, title: "Updated Title", content: "Updated Content", created_at: _, updated_at: _}] = AdvancedJournal.all_entries(pid)
   """
   def update_entry(pid, id, attrs) do
+    Agent.update(pid, fn state ->
+      index = Enum.find_index(state.entries, fn entry -> entry.id == id end)
+
+      new_entries = List.update_at(state.entries, index, fn entry -> Map.merge(entry, attrs) end)
+
+      %{state | entries: new_entries}
+    end)
   end
 
   @doc """
@@ -349,9 +368,37 @@ defmodule AdvancedJournal do
       iex> AdvancedJournal.delete_entry(pid, 0)
       iex> []
   """
-  def delete_entry(pid, id, attrs) do
+  def delete_entry(pid, id) do
+    Agent.update(pid, fn state ->
+      new_entries = Enum.reject(state.entries, fn entry -> entry.id == id end)
+      %{state | entries: new_entries}
+    end)
+  end
+
+  def make_entry(index, attrs) do
+    %__MODULE__{
+      id: index,
+      title: attrs[:title] || "",
+      content: attrs[:content] || "",
+      created_at: DateTime.utc_now(),
+      updated_at: DateTime.utc_now()
+    }
   end
 end
+
+{:ok, pid} = AdvancedJournal.start_link([])
+
+AdvancedJournal.add_entry(pid, %{
+  title: "Title",
+  content: "Content"
+})
+
+AdvancedJournal.add_entry(pid, %{
+  title: "Title",
+  content: "Content"
+})
+
+AdvancedJournal.all_entries(pid)
 ```
 
 ## Commit Your Progress
