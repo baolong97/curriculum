@@ -92,7 +92,8 @@ defmodule Inventory do
       iex> is_reference(ref)
       true
   """
-  def new() do
+  def new(opts \\ []) do
+    :ets.new(:inventory, opts)
   end
 
   @doc """
@@ -105,6 +106,10 @@ defmodule Inventory do
       0
   """
   def get_quantity(ref, item) do
+    case :ets.lookup(ref, item) do
+      [{_item, quantity}] -> quantity
+      _ -> 0
+    end
   end
 
   @doc """
@@ -118,6 +123,8 @@ defmodule Inventory do
       true
   """
   def store(ref, item, quantity) do
+    existing_quantity = get_quantity(ref, item)
+    :ets.insert(ref, {item, quantity + existing_quantity})
   end
 end
 ```
@@ -186,7 +193,8 @@ defmodule Warehouse do
       iex> is_reference(ref)
       true
   """
-  def new(opts \\ []) do
+  def new() do
+    :ets.new(:warehouse, [:duplicate_bag])
   end
 
   @doc """
@@ -197,8 +205,15 @@ defmodule Warehouse do
       iex> ref = Warehouse.new()
       iex> Warehouse.get_boxes(ref, :apples)
       []
+
+      iex> ref = Warehouse.new()
+      iex> Warehouse.store(ref, :apples, 1)
+      iex> Warehouse.store(ref, :apples, 2)
+      iex> Warehouse.get_boxes(ref, :apples)
+      [{:apples, 1}, {:apples, 2}]
   """
   def get_boxes(ref, item) do
+    :ets.lookup(ref, item)
   end
 
   @doc """
@@ -212,6 +227,7 @@ defmodule Warehouse do
       true
   """
   def store(ref, item, quantity) do
+    :ets.insert(ref, {item, quantity})
   end
 end
 ```
