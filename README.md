@@ -99,7 +99,7 @@ See [start.livemd](https://github.com/DockYard-Academy/curriculum/blob/main/star
 * Ecto Changesets
 * State Management With Agents And ETS
 * Metaprogramming
-* Queues
+* Queues 
 * Worker Pools
 * Rubix Cube Project
 
