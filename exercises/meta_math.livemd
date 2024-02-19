@@ -76,6 +76,8 @@ defmodule Math do
   true
   """
   def correct?(equation, player_answer) do
+    {result, _bindings} = Code.eval_string(equation)
+    result == player_answer
   end
 end
 ```
