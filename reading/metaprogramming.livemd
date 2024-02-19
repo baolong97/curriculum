@@ -191,7 +191,7 @@ Use the `quote` macro to discover the AST representation of the following expres
 ```
 
 ```elixir
-
+quote do: 2 + 2 + 2
 ```
 
 ## Unquote
@@ -606,9 +606,17 @@ Create a `Usage` module that uses the `use` keyword to call the `__using__` macr
 
 ```elixir
 defmodule Greetings do
+  defmacro __using__(_opts) do
+    quote do
+      def hello do
+        "hello"
+      end
+    end
+  end
 end
 
 defmodule Usage do
+  use Greetings
 end
 ```
 
